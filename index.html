@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+
+        <title>Vagrant. It's quite good.</title>
+
+        <meta name="description" content="A framework for easily creating beautiful presentations using HTML">
+        <meta name="author" content="Hakim El Hattab">
+
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+        <link rel="stylesheet" href="css/reveal.min.css">
+        <link rel="stylesheet" href="css/theme/night.css" id="theme">
+
+        <!-- For syntax highlighting -->
+        <link rel="stylesheet" href="lib/css/zenburn.css">
+
+        <!-- If the query includes 'print-pdf', use the PDF print sheet -->
+        <script>
+            document.write( '<link rel="stylesheet" href="css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+        </script>
+
+        <!--[if lt IE 9]>
+        <script src="lib/js/html5shiv.js"></script>
+        <![endif]-->
+    </head>
+
+    <body>
+
+        <div class="reveal">
+
+            <div class="slides">
+
+                <section data-markdown>
+                    # Vagrant
+
+                    ### It's quite good
+
+                </section>
+                <section data-markdown>
+                    ## What is it?
+
+                    From the [Vagrant](http://www.vagrantup.com/) site:
+
+                    > "Create and configure lightweight, reproducible, and portable development environments."
+                </section>
+                <section data-markdown>
+                    ## What does that mean?
+
+                    Helps you run an app in a virtual machine and manage it with ease
+                </section>
+                <section data-markdown>
+                    ## Do what with virtual machines now?
+
+                    * Create and destroy, quickly and safely
+                    * Speedy start, suspend and stop operations
+                    * Automagic forwarding of ports (eg. ssh and http)
+                    * Repeatable provisioning and configuration
+                </section>
+                <section data-markdown>
+                    ## Terminology
+
+                    ### Host and Guest
+
+                    **Host:** your actual, physical machine
+
+                    **Guest:** a virtual machine running on your host
+                </section>
+                <section data-markdown>
+                    ## Terminology
+
+                    ### Base box
+
+                    * A lightweight, pre-prepared OS image
+                    * Usually Linux; could be Windows or something else
+                    * Base boxes are stashed for reuse by Vagrant in `~/.vagrant.d/`
+
+                </section>
+                <section data-markdown>
+                    ## How does Vagrant work?
+
+                    * Downloads the base box (if not already present)
+                    * Clones the base box to your project
+                    * Boots the base box
+                    * Runs config and provisioning instructions
+                </section>
+                <section data-markdown>
+                    ### Project files
+
+                    * They still live on your physical machine
+                    * But the VM can see them, via shared folders...
+                    * ...so you can use your usual editor and tools
+                </section>
+                <section data-markdown>
+                    ### Running the app
+
+                    * Your Ruby, Python, Node or whatever app runs in the VM
+                    * HTTP ports can be forwarded from guest to host...
+                    * ... so browsers running on the host can see the site
+                </section>
+                <section data-markdown>
+                    ## Get going
+
+                    * Install stuff
+                    * Create a `Vagrantfile`
+                    * Make a provision script
+
+                </section>
+                <section data-markdown>
+                    ### Install stuff
+
+                    1. [VirtualBox](http://www.virtualbox.org/wiki/Downloads)
+                    2. [VirtualBox Extension Pack](http://www.virtualbox.org/wiki/Downloads)
+                    3. [Vagrant](http://www.vagrantup.com/)
+
+                    NB: [VMware](http://www.vagrantup.com/vmware) also supported (more stable, not free)
+                </section>
+                <section data-markdown>
+                    ### Create a `Vagrantfile`
+
+                    Just a config file. Have a basic one created for you:
+
+                    ```bash
+                    vagrant init precise64 http://files.vagrantup.com/precise64.box
+                    ```
+                </section>
+                <section data-markdown>
+                    ### Or make your own
+
+                    Should specify:
+
+                    * base box name
+                    * base box URL
+                    * networking
+                    * provisioning info
+                </section>
+                <section data-markdown>
+                    ## A simple `Vagrantfile`
+
+                    ```ruby
+                    # -*- mode: ruby -*-
+                    # vi: set ft=ruby :
+
+                    Vagrant.configure("2") do |config|
+                      config.vm.box = "precise64"
+                      config.vm.box_url = "http://files.vagrantup.com/precise64.box"
+                      config.vm.network :forwarded_port, host: 4567, guest: 4567
+                      config.vm.provision :shell, :path => "provision.sh"
+                    end
+                    ```
+                </section>
+                <section data-markdown>
+                    ## Provisioning
+
+                    Works with:
+
+                    * [Chef](http://www.opscode.com/chef/)
+                    * [Puppet](http://puppetlabs.com/)
+                    * Shell scripts
+                    * [SaltStack](http://saltstack.com/) ([soon](https://github.com/mitchellh/vagrant/issues/1416), Python fans)
+
+                </section>
+                <section data-markdown>
+                    ## Chef and Puppet are hard
+
+                    Let's use shell scripts
+                </section>
+                <section data-markdown>
+                    ## A simple `provision.sh`
+
+                    ```bash
+                    #!/usr/bin/env bash
+
+                    # Update system package lists
+                    sudo apt-get update
+
+                    # Install necessary system packages
+                    sudo apt-get install -y \ # automatic yes to prompts with -y
+                    build-essential \
+                    nodejs \
+
+                    # Install Bundler (no docs)
+                    gem install --no-rdoc --no-ri \
+                    bundler \
+
+                    # Bundle all the gems in the gemfile
+                    cd /vagrant/www
+                    bundle install
+                    ```
+                </section>
+                <section data-markdown>
+                    ## `vagrant up`
+
+                    All done.
+
+                    Now:
+
+                    ```bash
+                    $ vagrant up
+                    ```
+
+                </section>
+                <section data-markdown>
+                    ## `vagrant up`
+
+                    ```bash
+                    $ vagrant up
+                    Bringing machine 'default' up with 'virtualbox' provider...
+                    [default] Importing base box 'precise64'...
+                    [default] Matching MAC address for NAT networking...
+                    [default] Setting the name of the VM...
+                    [default] Clearing any previously set forwarded ports...
+                    [default] Creating shared folders metadata...
+                    [default] Clearing any previously set network interfaces...
+                    [default] Preparing network interfaces based on configuration...
+                    [default] Forwarding ports...
+                    [default] -- 22 => 2222 (adapter 1)
+                    [default] -- 4567 => 4567 (adapter 1)
+                    [default] Booting VM...
+                    [default] Waiting for VM to boot. This can take a few minutes.
+                    [default] VM booted and ready for use!
+                    [default] Configuring and enabling network interfaces...
+                    [default] Mounting shared folders...
+                    [default] -- /vagrant
+                    [default] Running provisioner: shell...
+                    [default] Running: /var/folders/2j/lkj6zqjx3hd6wzwsz2v55bmw0000gn/T/vagrant-shell20130612-1787-14r3iia
+                    # <snip> a few minutes + lots of install logging
+                    ```
+                </section>
+                <section data-markdown>
+                    ## What now?
+
+                    Common commands:
+
+                    * `vagrant up`
+                    * `vagrant ssh`
+                    * `vagrant suspend`
+                    * `vagrant halt`
+                    * `vagrant reload`
+                    * `vagrant destroy`
+                </section>
+                <section data-markdown>
+                    ## `vagrant up`
+
+                    First use also runs provisioning and starts the VM
+
+                    After that, it just starts the VM
+
+                </section>
+                <section data-markdown>
+                    ## `vagrant ssh`
+
+                    ### Get in and muck about
+
+                    ```bash
+                    $ vagrant ssh
+                    Welcome to Ubuntu 12.04 LTS (GNU/Linux 3.2.0-23-generic x86_64)
+
+                     * Documentation:  https://help.ubuntu.com/
+                    Welcome to your Vagrant-built virtual machine.
+                    Last login: Fri Sep 14 06:23:18 2012 from 10.0.2.2
+                    vagrant@precise64:/vagrant$ pwd
+                    /vagrant
+                    vagrant@precise64:/vagrant$ exit
+                    logout
+                    Connection to 127.0.0.1 closed.
+                    ```
+                </section>
+                <section data-markdown>
+                    ## `vagrant suspend`
+
+                    ### Pause the VM
+
+                    * Keeping the state
+                    * Freeing up resources
+
+                    ```bash
+                    $ vagrant suspend
+                    [default] Saving VM state and suspending execution...
+                    ```
+                </section>
+                <section data-markdown>
+                    ## `vagrant halt`
+
+                    ### Shut down the VM
+
+                    * Lose state
+                    * Keep installed packages etc.
+
+                    ```bash
+                    $ vagrant halt
+                    [default] Discarding saved state of VM...
+                    ```
+                </section>
+                <section data-markdown>
+                    ## `vagrant destroy`
+
+                    ### Destroy the VM
+
+                    Doesn't affect your project files or the base box.
+
+                    ```bash
+                    $ vagrant destroy
+                    Are you sure you want to destroy the 'default' VM? [y/N] y
+                    [default] Forcing shutdown of VM...
+                    [default] Destroying VM and associated drives...
+                    ```
+                </section>
+                <section data-markdown>
+                    ## `vagrant reload`
+
+                    Like `vagrant up`, but runs the provision script again.
+
+                    The same as running `vagrant up` for the first time.
+                </section>
+                <section data-markdown>
+                    ## Why bother?
+
+                    If you can run an app on your actual, physical machine, why bother running them in a Vagrant VM?
+                </section>
+                <section data-markdown>
+                    ### Consistent environment for all
+
+                    Put the `Vagrantfile` and provision script under version control.
+
+                    All team members can run the same stack on the same (virtual) OS.
+
+                </section>
+                <section data-markdown>
+                    ### Consistent environment for all
+
+                    No more:
+
+                    * Spending ages trying to get dependencies sorted so work can start
+                    * Weird issues caused by slightly different versions
+                    * "It works fine on my machine" conversations
+                    * Windows-using tech clients getting upset
+                </section>
+                <section data-markdown>
+                    ### Less thought
+
+                    If you are:
+
+                    * Using a different machine
+                    * Coming back to a project a few months later
+                    * Helping a new team member get going
+                </section>
+                <section data-markdown>
+                    ### Less thought
+
+                    ```bash
+                    $ git clone https://github.com/user/project-name.git project-name
+                    $ cd project-name
+                    $ cat README.md
+                    $ vagrant up
+                    ```
+
+                    Done (pretty much)
+                </section>
+                <section data-markdown>
+                    ### Code beats documentation
+
+                    Documentation is good; code is better.
+
+                    Written instructions on how to get an app running can get out of date quickly.
+                </section>
+                <section data-markdown>
+                    ### Code beats documentation
+
+                    * Script the provisioning
+                    * Quickly becomes clear when dependencies are broken
+                    * Easy to fix, then distribute
+                </section>
+                <section data-markdown>
+                    ### Fallback
+
+                    You're not forced into using Vagrant: you can still install the dependencies on your host machine and run the app there, if you like.
+
+                </section>
+                <section data-markdown>
+                    ## Resources
+
+                    * [Vagrant docs](http://docs.vagrantup.com/): start here
+                    * [Vagrant book](http://shop.oreilly.com/product/0636920026358.do): just released
+                    * [Vagrant AWS plugin](https://github.com/mitchellh/vagrant-aws): manage EC2 and VPC instances
+                    * [Vagrantbox.es](http://www.vagrantbox.es/): lots of base boxes
+                    * [Rove](http://rove.io/): Chef and Vagrantfile build tool
+                    * [Puphet](https://puphpet.com/): Puppet and Vagrantfile for PHP build tool
+                    * [fabtools](https://github.com/ronnix/fabtools): handy helpers for Fabric (see [Vagrant API](https://fabtools.readthedocs.org/en/latest/api/vagrant.html))
+
+                </section>
+                <section data-markdown>
+                    ### STFU Paul
+
+                    Fanks
+
+                    Presented at [HMTL](https://secure.flickr.com/photos/ohskylab/8841052813/), 12th June 2013
+
+                    Built with [Reveal.js](http://lab.hakim.se/reveal-js/)
+
+                </section>
+
+            </div>
+
+        </div>
+
+        <script src="lib/js/head.min.js"></script>
+        <script src="js/reveal.min.js"></script>
+
+        <script>
+
+            // Full list of configuration options available here:
+            // https://github.com/hakimel/reveal.js#configuration
+            Reveal.initialize({
+                controls: true,
+                progress: true,
+                history: true,
+                center: true,
+
+                theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+                transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+
+                // Optional libraries used to extend on reveal.js
+                dependencies: [
+                    { src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+                    { src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+                    { src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+                    { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+                    { src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+                    { src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+                    // { src: 'plugin/search/search.js', async: true, condition: function() { return !!document.body.classList; } }
+                    // { src: 'plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+                ]
+            });
+
+        </script>
+
+    </body>
+</html>
